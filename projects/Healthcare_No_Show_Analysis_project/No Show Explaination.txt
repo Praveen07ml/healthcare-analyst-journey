@@ -1,0 +1,23 @@
+Good morning doctor.
+
+This project focused on understanding why patients miss hospital appointments and identifying patterns that may be affecting scheduling efficiency and patient care.
+
+We analyzed historical appointment records to see whether missed appointments were associated with specific departments, patient age groups, weekdays, or time periods.
+
+Before analyzing the data, I first reviewed and cleaned the records to make sure the information was consistent and reliable. For example, I corrected inconsistent department names, handled missing information, and checked for duplicate appointment records.
+
+After organizing the data, I analyzed appointment attendance patterns across different patient groups and departments.
+
+The analysis showed that the hospital’s missed appointment rate was above 20%, meaning that approximately 1 out of every 5 scheduled appointments was not attended.
+
+We also found that some departments, particularly Psychiatry and Cardiology, experienced relatively higher missed appointment rates compared to others.
+
+Additionally, younger patient groups tended to miss appointments more frequently, and certain weekdays showed consistently higher no-show behavior.
+
+These patterns may be affecting doctor scheduling efficiency, appointment utilization, and operational planning.
+
+Based on the findings, I recommended targeted reminder strategies for high-risk patient groups and departments, along with closer monitoring of scheduling patterns on high no-show days.
+
+It is also important to mention that the dataset did not include information such as transportation access or travel distance, so the findings should be interpreted as operational patterns rather than direct causes.
+
+Overall, the project helped identify areas where the hospital could potentially improve patient attendance and reduce wasted appointment capacity.
