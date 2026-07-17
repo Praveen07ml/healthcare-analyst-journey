@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="Practice_Joins_DB.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1891"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="customers" custom_title="0" dock_id="1" table="4,9:maincustomers"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011300ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">-- Display every product along with the average product price.
+
+SELECT product_name,(SELECT avg(price) FROM products) as avg_price_products
+FROM products;
+
+
+-- Display every customer along with their total number of orders.
+
+
+SELECT customer_name,(SELECT count(order_id) FROM orders) as total_orders
+FROM customers ;
+
+
+
+-- Display each product along with the maximum product price.
+
+
+SELECT product_name,(SELECT max(price) FROM products) as max_product_price
+FROM products;
+
+
+
+--Display each customer's total spending beside their name.
+
+SELECT c.customer_name,(SELECT sum(o.quantity*p.price -o.discount) 
+                      FROM orders o
+					  JOIN products p on o.product_id = p.product_id
+					  WHERE o.customer_id = c.customer_id) as total_spending
+from customers c;
+
+
+--Display each product along with its category's average price.
+
+
+SELECT p.product_name,p.category,(SELECT round(avg(p1.price),2) FROM products p1 WHERE p1.category = p.category) as avg_price
+from products p; 
+
+
+-- Display each customer's latest order date.
+
+SELECT c.customer_name,(SELECT max(o.order_date) from orders o WHERE o.customer_id = c.customer_id) as recent_order_date
+FROM customers c;
+
+
+--Display each product along with the total quantity sold.
+
+
+SELECT p.product_name,(SELECT sum(o.quantity) FROM orders o WHERE o.product_id = p.product_id) as total_quantity
+FROM products p;
+
+
+-- Display each customer along with the city's average spending.
+
+SELECT c1.customer_name,c1.city,(SELECT avg(city_totals)
+                        FROM (select sum(o.quantity*p.price-o.discount) FROM orders o 
+                        JOIN customers c on o.customer_id = c.customer_id 
+					    JOIN products p on o.product_id = p.product_id
+						where c.city = c1.city
+						GROUP by c.customer_id) as city_totals) as avg_total_spending
+FROM customers c1;</sql><current_tab id="0"/></tab_sql></sqlb_project>
