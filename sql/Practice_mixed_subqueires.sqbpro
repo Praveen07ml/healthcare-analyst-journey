@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="Practice_Joins_DB.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1891"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="orders" custom_title="0" dock_id="1" table="4,6:mainorders"/><dock_state state="000000ff00000000fd0000000100000002000005f4000002acfc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000005f40000012500ffffff0000026c0000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="customers" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="84"/><column index="2" value="106"/><column index="3" value="109"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="orders" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="60"/><column index="2" value="85"/><column index="3" value="86"/><column index="4" value="76"/><column index="5" value="59"/><column index="6" value="60"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="products" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="74"/><column index="2" value="96"/><column index="3" value="93"/><column index="4" value="46"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">-- Display products whose price is greater than the average price of all products.
+
+SELECT product_name
+FROM products 
+where price &gt; (SELECT avg(price)
+               FROM products);
+			   
+			   
+-- Display customers along with their total number of orders.
+
+SELECT c.customer_name,(SELECT count(o.order_id) 
+                      FROM orders o
+					  WHERE o.customer_id = c.customer_id) as total_order_count
+FROM customers c;
+
+
+-- Display products that have never been ordered.
+
+SELECT p.product_name
+FROM products p
+WHERE NOT EXISTS (SELECT 1
+                  FROM orders o
+				  where o.product_id = p.product_id);
+SELECT product_name
+FROM products
+WHERE product_id not in (SELECT product_id 
+                         FROM orders o);
+						 
+-- Display each customer along with their latest order date.
+
+SELECT c.customer_name,(SELECT max(o.order_date) 
+                      FROM orders o
+					  where o.customer_id = c.customer_id) as latest_order_date
+FROM customers c;
+
+
+-- Display products whose price is equal to the highest-priced product in their category.
+
+SELECT p.product_name,p.price
+FROM products p
+where p.price = (SELECT max(p1.price)
+               FROM products p1
+			   WHERE p1.category = p.category);
+			   
+			   
+-- Display customers whose total spending is greater than ₹50,000.
+
+SELECT t.customer_name,t.total_spending
+FROM (SELECT c.customer_name,sum(o.quantity*p.price-o.discount) as total_spending
+      FROM customers c
+	  JOIN orders o on o.customer_id = c.customer_id
+	  JOIN products p on o.product_id = p.product_id
+	  GROUP by c.customer_name) t
+WHERE t.total_spending &gt; 50000;
+
+-- Display every product along with the total quantity sold.
+
+SELECT p.product_name,(SELECT sum(o.quantity)
+                     FROM orders o
+					 WHERE o.product_id = p.product_id) as total_quantity
+FROM products p;
+
+
+-- Display customers who purchased at least one Electronics product.
+
+SELECT c.customer_name
+FROM customers c
+WHERE EXISTS (SELECT 1
+              FROM orders o
+			  JOIN products p on o.product_id = p.product_id
+			  WHERE o.customer_id = c.customer_id AND p.category = &quot;Electronics&quot;);
+			 
+--Display each product along with the average price of its category.
+
+SELECT p1.product_name,(SELECT round(avg(p2.price),2) 
+                     FROM products p2
+					 where p2.category = p1.category) as avg_category_price
+FROM products p1;
+
+--Display cities whose average customer spending is greater than ₹40,000.
+
+
+SELECT t.city,avg(t.total_spent) as avg_customer_spent
+FROM (SELECT c.city,customer_name,sum(o.quantity*p.price-o.discount) as total_spent
+      FROM customers c
+	  JOIN orders o on o.customer_id = c.customer_id
+	  JOIN products p on o.product_id = p.product_id
+	  GROUP by customer_name,city) t
+GROUP by t.city
+HAVING avg(t.total_spent) &gt; 40000;
+
+	        
+					 
+-- Display customers who have placed more orders than the average number of orders per customer.
+
+
+SELECT c.customer_name,count(o.order_id) as order_count
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+GROUP by c.customer_name
+having count(o.order_id) &gt; (SELECT avg(t.order_count)
+                            FROM (SELECT c1.customer_name,count(o1.order_id) as order_count
+							      FROM customers c1
+								  JOIN orders o1 on o1.customer_id = c1.customer_id
+								  GROUP by c1.customer_name) t);
+								  
+-- Display products whose total quantity sold is greater than the average quantity sold across all products.
+
+
+SELECT p.product_name,sum(o.quantity) as total_quantity
+FROM products p
+JOIN orders o on o.product_id = p.product_id
+GROUP by p.product_name
+HAVING sum(o.quantity) &gt; (SELECT avg(t.total_quantity)
+                          FROM (SELECT p1.product_id,sum(o1.quantity) as total_quantity
+						        FROM orders o1
+								JOIN products p1 on o1.product_id = p1.product_id
+								GROUP by p1.product_id) t);
+								
+-- Display customers who purchased the most expensive product.
+
+SELECT c.customer_name,p.product_name,p.price
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN products p on o.product_id = p.product_id
+WHERE p.price = (SELECT max(price) FROM products);
+
+
+
+-- Display each customer along with the total number of different products they have purchased.
+
+
+SELECT c.customer_name,count(DISTINCT o.product_id) as unique_order_count
+FROM customers c
+join orders o on o.customer_id = c.customer_id
+GROUP by c.customer_name;
+
+
+-- Display categories whose average product price is higher than the overall average product price.
+
+
+SELECT category,avg(price) as avg_product_price
+FROM products
+GROUP by category
+having avg(price) &gt; (SELECT avg(price) FROM products);
+
+
+-- Display customers whose total spending is greater than the average spending of customers in their own city.
+
+SELECT c.customer_id,c.customer_name,sum(o.quantity*p.price-o.discount) as total_spend
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN products p on o.product_id = p.product_id
+GROUP by c.customer_id,c.customer_name,c.city
+having sum(o.quantity*p.price-o.discount) &gt; (SELECT avg(t.total_spend) 
+                                      from (SELECT c1.customer_id,sum(o1.quantity*p1.price-o1.discount) as total_spend
+                                      FROM customers c1
+                                      JOIN orders o1 on o1.customer_id = c1.customer_id
+                                      JOIN products p1 on o1.product_id = p1.product_id
+									  WHERE c1.city = c.city
+                                      GROUP by c1.customer_id,c1.city)t);
+									  
+									  
+-- Display products that have been purchased by customers from Hyderabad.
+
+
+SELECT DISTINCT p.product_name,c.city
+FROM products p
+JOIN orders o on o.product_id = p.product_id
+JOIN customers c on o.customer_id = c.customer_id
+where c.city = &quot;Hyderabad&quot;;
+
+
+-- Display the customer(s) who spent the highest amount overall.
+
+SELECT t.customer_id,t.customer_name,t.total_spent
+FROM (SELECT c.customer_id,c.customer_name,sum(o.quantity*p.price-o.discount) as total_spent
+	  FROM customers c
+	  JOIN orders o on c.customer_id = o.customer_id
+	  JOIN products p on o.product_id = p.product_id
+	  GROUP by c.customer_id,c.customer_name) t
+WHERE t.total_spent = (SELECT max(t2.total_spent)
+                       FROM (SELECT c1.customer_id,c1.customer_name,sum(o1.quantity*p1.price-o1.discount) as total_spent
+	  FROM customers c1
+	  JOIN orders o1 on c1.customer_id = o1.customer_id
+	  JOIN products p1 on o1.product_id = p1.product_id
+	  GROUP by c1.customer_id,c1.customer_name) t2);
+	  
+
+-- Display customers who purchased every product in the &quot;Electronics&quot; category.
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN products p on o.product_id = p.product_id
+WHERE p.category = &quot;Electronics&quot;
+group by c.customer_name,c.customer_id
+HAVING count(DISTINCT p.product_id) = (SELECT count(*) FROM products where category = &quot;Electronics&quot;); </sql><current_tab id="0"/></tab_sql></sqlb_project>
