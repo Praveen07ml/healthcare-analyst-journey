@@ -1,0 +1,249 @@
+Display the names of customers who have purchased products from exactly 2 different categories.
+
+Tables
+
+Customers
+Orders
+Order_Items
+Products
+
+Business Requirement  -- it want customers purchased exactly 2 different categories
+Manual Verification -- so we need to look each customer produtct category list if that customer purchased 2 different categories he was in our customer list
+Business Proof -- group by + having + count distict categories = 2
+SQL Pattern
+
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+JOIN products p on p.product_id = o1.product_id
+GROUP by c.customer_id,c.customer_name
+HAVING count(DISTINCT p.category_id) = 2;
+
+
+Business Requirement
+
+Display the names of customers who have never purchased Electronics, but have purchased at least one Footwear product.
+
+Tables
+
+Customers
+Orders
+Order_Items
+Products
+Categories
+
+
+Business Requirement --we need customers the customer doesnot purchase electronics and purchased Footwear product
+Manual Verification --  in customer purchased product category list we need to check two conditions 1)Electronics never purchased 2) atleast one Footwear product purcahsed
+Business Proof - not exists <> electronics and exists = footwear
+SQL Pattern
+SQL
+
+SELECT c.customer_name
+FROM customers c
+WHERE NOT EXISTS (SELECT 1
+                  FROM orders o
+				  JOIN order_items o1 on o1.order_id = o.order_id
+				  JOIN products p on p.product_id = o1.product_id
+				  JOIN categories cat on cat.category_id = p.category_id
+				  WHERE o.customer_id = c.customer_id and cat.category_name = 'Electronics') AND EXISTS (
+				  
+				  SELECT 1
+				  FROM orders o
+				  JOIN order_items o1 on o1.order_id = o.order_id
+				  JOIN products p on p.product_id = o1.product_id
+				  JOIN categories cat on cat.category_id = p.category_id
+				  WHERE o.customer_id = c.customer_id and cat.category_name = 'Footwear');
+
+
+Display the names of customers who have placed at least 5 orders, but whose latest order amount is less than ₹2,000.
+
+Tables
+
+Customers
+Orders
+
+Business Requirement -- we have to display the customer names who atleast purchased 5 orders and that their latest order must be less than 2k
+Manual Verification -- we need to find that customers their total orders 5 or more and also and latest order amount less than 2k
+Business Proof - count(order_count) >= 5 AND inside something max order date order amount less than 2k  its need inside of another
+
+select c.customer_name
+FROM customers c
+JOIN orders o
+on o.customer_id = c.customer_id
+GROUP by c.customer_id,c.customer_name
+HAVING count(o.order_id) >= 5 and (SELECT o2.total_amount 
+                                   FROM orders o2
+								   WHERE o2.customer_id = c.customer_id and o2.order_date = (SELECT max(o1.order_date)
+								                                                           FROM orders o1
+																						   WHERE o1.customer_id = c.customer_id  )) < 2000; 
+
+
+
+
+Business Requirement
+
+Display the names of customers whose first order was placed before January 15, 2025, and whose latest order was placed after March 1, 2025.
+
+Tables
+
+Customers
+Orders
+
+Business Requirement -- so i have to display customers their first order before jan 15 and latest order place after march 1
+Manual Verification -- we need to check two conditions here 1) first order before jan 15 and latest order after  march 1
+Business Proof -- min order < jan 15 and max order > march 1
+SQL Pattern
+
+SELECT c.customer_name 
+FROM customers c
+JOIN orders o
+on o.customer_id = c.customer_id
+GROUP by c.customer_id,c.customer_name
+HAVING (min(o.order_date) < '2025-01-15') and (max(o.order_date) > '2025-03-01'); 		
+
+
+
+Business Requirement
+
+Display the names of customers who have purchased every Electronics product.
+
+Tables
+
+Customers
+Orders
+Order_Items
+Products
+
+
+
+Business Requirement -- we need to display customers and they must purchase every product in electronics category
+Manual Verification  -- we need to check in customer product category list that customer purchase every product in electronics category
+Business Proof  -- group by + having + count of distinct products = count of every product in electronics 
+SQL Pattern
+
+
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items od on od.order_id = o.order_id
+JOIN products p on p.product_id = od.product_id
+JOIN categories cat on cat.category_id = p.category_id
+WHERE cat.category_name = 'Electronics'
+GROUP by c.customer_id,c.customer_name
+HAVING count(DISTINCT p.product_id) = (SELECT count(p.product_id)
+                                       FROM products p
+									   JOIN categories c1
+									   on c1.category_id = p.category_id
+									   WHERE c1.category_name = 'Electronics');
+
+
+
+
+Business Requirement
+
+Display the names of customers whose total spending is greater than ₹50,000 and who have purchased at least 10 different products.
+
+Tables
+
+Customers
+Orders
+Order_Items
+
+
+
+
+
+Business Requirement --- we have display customers total spend is greater than 50 k and purchased 10 different products
+Manual Verification -- in our customr total spending must be 50 k and and also purchase 10 different products
+Business Proof -- group by + having + sum(total_spend) > 50 k and count of distincts products more than or equal to 10 
+SQL Pattern
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+GROUP by c.customer_id,c.customer_name
+HAVING sum(o.total_amount) > 50000 and count(DISTINCT o1.product_id) >= 10;
+
+
+
+
+Display the names of customers who have placed more than 3 orders, and every order amount is greater than ₹2,000.
+
+Tables
+
+Customers
+Orders
+
+(Hint: Think about how to prove "every order.")
+
+Business Requirement -- displaying the customers their orders count more than 3 orders and also we need to make sure their each order grater than 2000
+Manual Verification -- so we need to check the whole orders more than three and each order value must be more than 2000 for each customer
+Business Proof -- group by + having + count of orders >= 3 and not exist (violation)
+SQL Pattern
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o 
+on o.customer_id = c.customer_id
+where not EXISTS (SELECT 1
+                  FROM orders o
+				  where o.customer_id = c.customer_id and o.total_amount < 2000)
+GROUP by c.customer_id,c.customer_name
+HAVING count(o.order_id) > 3;
+
+
+
+
+
+
+
+Display the names of customers who have purchased from every category except Electronics.
+
+Tables
+
+Customers
+Orders
+Order_Items
+Products
+Categories
+
+
+
+Business Requirement -- we need to display customers they must purchase all categories  except Electronics
+Manual Verification -- we need to check the customer must purchase all categories except one electronics category
+Business Proof -- count of distinct customer purchased categories = count of actual categories + group by + having
+SQL Pattern
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+JOIN products p on p.product_id = o1.product_id
+JOIN categories cat on cat.category_id = p.category_id
+WHERE cat.category_name <> 'Electronics'
+GROUP by c.customer_id,c.customer_name
+HAVING count(DISTINCT p.category_id) = (SELECT count(p1.product_id)
+                                        FROM products p1
+										JOIN categories c1
+										on c1.category_id = p1.category_id
+										WHERE c1.category_name <> 'Electronics');
+
+
+
+
+
+
+
+
+
+Business Requirement
+Manual Verification
+Business Proof
+SQL Pattern
+
+
