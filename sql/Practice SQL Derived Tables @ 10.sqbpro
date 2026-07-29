@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="SQL Interview Practice.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1661"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="orders" custom_title="0" dock_id="1" table="4,6:mainorders"/><dock_state state="000000ff00000000fd0000000100000002000005f4000002acfc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000005f40000012500ffffff0000026c0000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="categories" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="80"/><column index="2" value="124"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="orders" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="60"/><column index="2" value="86"/><column index="3" value="85"/><column index="4" value="91"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">-- Display the names of customers whose total spending is greater than ₹50,000.
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,sum(o.total_amount) as total_spending
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_name) t
+WHERE t.total_spending &gt; 50000;
+	
+-- Display the names of customers who have placed more than 5 orders.
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,count(o.order_id) as total_count
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_id,c.customer_name) t
+WHERE t.total_count &gt; 5;
+
+
+
+-- Display the names of customers whose average order amount is greater than ₹8,000.
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,avg(o.total_amount) as avg_order
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_name) t
+WHERE t.avg_order &gt; 8000;
+
+
+
+-- Display the names of customers who have purchased at least 10 different products.
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,count(DISTINCT o1.product_id) as order_count
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  JOIN order_items o1 on o1.order_id = o.order_id
+	  GROUP by c.customer_id,c.customer_name) t
+WHERE t.order_count &gt;= 10 ;
+
+
+
+-- Display the names of customers whose total spending is greater than ₹100,000 and who have placed at least 10 orders.
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,sum(o.total_amount) as total_spent,count(o.order_id) as order_count
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_id,c.customer_name)t
+WHERE t.total_spent &gt; 100000 and t.order_count &gt;= 10;
+
+
+
+-- Display the names of customers who purchased products from every category.
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,count(distinct p.category_id) as customer_cat_count
+      FROM customers c
+	  JOIN orders o
+	  on c.customer_id = o.customer_id
+	  JOIN order_items o1 on o1.order_id = o.order_id
+	  JOIN products p on p.product_id = o1.product_id
+	  GROUP by c.customer_id,c.customer_name) t
+where t.customer_cat_count = (SELECT count(*)
+                              FROM categories);
+							  
+							  
+-- Display the names of customers whose average order amount is greater than ₹7,500 and who have never placed an order below ₹500.
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_id,c.customer_name,avg(o.total_amount) as avg_amount
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_id,c.customer_name) t
+WHERE avg_amount &gt; 7500 AND not EXISTS (SELECT 1
+                                        FROM orders o2
+										WHERE o2.customer_id = t.customer_id and o2.total_amount &lt; 500);
+							  
+							  
+-- Display the names of customers whose latest order amount is greater than their own average order amount.
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_id,c.customer_name,o.total_amount as latest_total_amount 
+      from customers c
+	  JOIN orders o 
+	  on o.customer_id = c.customer_id
+	  where o.order_date = (SELECT max(o1.order_date)
+	                        FROM orders o1
+							WHERE o1.customer_id = c.customer_id))t
+where t.latest_total_amount &gt; (SELECT avg(o2.total_amount)
+                               FROM orders o2
+							   WHERE o2.customer_id = t.customer_id);</sql><current_tab id="0"/></tab_sql></sqlb_project>

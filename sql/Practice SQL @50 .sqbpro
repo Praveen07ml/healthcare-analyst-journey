@@ -1,112 +1,148 @@
-<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="SQL Interview Practice.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1661"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="categories" custom_title="0" dock_id="1" table="4,10:maincategories"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011300ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">-- Display the names of customers who have purchased products from exactly 2 different categories.
-
-
-SELECT c.customer_name
-FROM customers c
-JOIN orders o on o.customer_id = c.customer_id
-JOIN order_items o1 on o1.order_id = o.order_id
-JOIN products p on p.product_id = o1.product_id
-GROUP by c.customer_id,c.customer_name
-HAVING count(DISTINCT p.category_id) = 2;
-
-
--- Display the names of customers who have never purchased Electronics, but have purchased at least one Footwear product.
-
-
-SELECT c.customer_name
-FROM customers c
-WHERE NOT EXISTS (SELECT 1
-                  FROM orders o
-				  JOIN order_items o1 on o1.order_id = o.order_id
-				  JOIN products p on p.product_id = o1.product_id
-				  JOIN categories cat on cat.category_id = p.category_id
-				  WHERE o.customer_id = c.customer_id and cat.category_name &lt;&gt; 'Electronics') AND EXISTS (
-				  
-				  SELECT 1
-				  FROM orders o
-				  JOIN order_items o1 on o1.order_id = o.order_id
-				  JOIN products p on p.product_id = o1.product_id
-				  JOIN categories cat on cat.category_id = p.category_id
-				  WHERE o.customer_id = c.customer_id and cat.category_name = 'Footwear');
-				  
--- Display the names of customers who have placed at least 5 orders, but whose latest order amount is less than ₹2,000.
-
-select c.customer_name
-FROM customers c
-JOIN orders o
-on o.customer_id = c.customer_id
-GROUP by c.customer_id,c.customer_name
-HAVING count(o.order_id) &gt;= 5 and (SELECT o2.total_amount 
-                                   FROM orders o2
-								   WHERE o2.customer_id = c.customer_id and o2.order_date = (SELECT max(o1.order_date)
-								                                                           FROM orders o1
-																						   WHERE o1.customer_id = c.customer_id  )) &lt; 2000;
-																						  
--- Display the names of customers whose first order was placed before January 15, 2025, and whose latest order was placed after March 1, 2025.
-
-SELECT c.customer_name 
-FROM customers c
-JOIN orders o
-on o.customer_id = c.customer_id
-GROUP by c.customer_id,c.customer_name
-HAVING (min(o.order_date) &lt; '2025-01-15') and (max(o.order_date) &gt; '2025-03-01'); 	
-
-
-
--- Display the names of customers who have purchased every Electronics product.
-
-
-SELECT c.customer_name
-FROM customers c
-JOIN orders o on o.customer_id = c.customer_id
-JOIN order_items od on od.order_id = o.order_id
-JOIN products p on p.product_id = od.product_id
-JOIN categories cat on cat.category_id = p.category_id
-WHERE cat.category_name = 'Electronics'
-GROUP by c.customer_id,c.customer_name
-HAVING count(DISTINCT p.product_id) = (SELECT count(p.product_id)
-                                       FROM products p
-									   JOIN categories c1
-									   on c1.category_id = p.category_id
-									   WHERE c1.category_name = 'Electronics');
-									   
--- Display the names of customers whose total spending is greater than ₹50,000 and who have purchased at least 10 different products.
-
-SELECT c.customer_name
-FROM customers c
-JOIN orders o on o.customer_id = c.customer_id
-JOIN order_items o1 on o1.order_id = o.order_id
-GROUP by c.customer_id,c.customer_name
-HAVING sum(o.total_amount) &gt; 50000 and count(DISTINCT o1.product_id) &gt;= 10;
-
-
--- Display the names of customers who have placed more than 3 orders, and every order amount is greater than ₹2,000.
-
-SELECT c.customer_name
-FROM customers c
-JOIN orders o 
-on o.customer_id = c.customer_id
-where not EXISTS (SELECT 1
-                  FROM orders o
-				  where o.customer_id = c.customer_id and o.total_amount &lt; 2000)
-GROUP by c.customer_id,c.customer_name
-HAVING count(o.order_id) &gt; 3;
-
-
-
--- Display the names of customers who have purchased from every category except Electronics.
-
-
-SELECT c.customer_name
-FROM customers c
-JOIN orders o on o.customer_id = c.customer_id
-JOIN order_items o1 on o1.order_id = o.order_id
-JOIN products p on p.product_id = o1.product_id
-JOIN categories cat on cat.category_id = p.category_id
-WHERE cat.category_name &lt;&gt; 'Electronics'
-GROUP by c.customer_id,c.customer_name
-HAVING count(DISTINCT p.category_id) = (SELECT count(c1.category_id)
-										FROM categories c1
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="SQL Interview Practice.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1661"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="order_items" custom_title="0" dock_id="1" table="4,11:mainorder_items"/><dock_state state="000000ff00000000fd0000000100000002000005f4000002acfc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000005f40000012500ffffff000005f40000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="categories" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="80"/><column index="2" value="124"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="order_items" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_" freeze_columns="0"><sort/><column_widths><column index="1" value="95"/><column index="2" value="62"/><column index="3" value="76"/><column index="4" value="59"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1*">-- Display the names of customers who have purchased products from exactly 2 different categories.
+
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+JOIN products p on p.product_id = o1.product_id
+GROUP by c.customer_id,c.customer_name
+HAVING count(DISTINCT p.category_id) = 2;
+
+
+-- Display the names of customers who have never purchased Electronics, but have purchased at least one Footwear product.
+
+
+SELECT c.customer_name
+FROM customers c
+WHERE NOT EXISTS (SELECT 1
+                  FROM orders o
+				  JOIN order_items o1 on o1.order_id = o.order_id
+				  JOIN products p on p.product_id = o1.product_id
+				  JOIN categories cat on cat.category_id = p.category_id
+				  WHERE o.customer_id = c.customer_id and cat.category_name &lt;&gt; 'Electronics') AND EXISTS (
+				  
+				  SELECT 1
+				  FROM orders o
+				  JOIN order_items o1 on o1.order_id = o.order_id
+				  JOIN products p on p.product_id = o1.product_id
+				  JOIN categories cat on cat.category_id = p.category_id
+				  WHERE o.customer_id = c.customer_id and cat.category_name = 'Footwear');
+				  
+-- Display the names of customers who have placed at least 5 orders, but whose latest order amount is less than ₹2,000.
+
+select c.customer_name
+FROM customers c
+JOIN orders o
+on o.customer_id = c.customer_id
+GROUP by c.customer_id,c.customer_name
+HAVING count(o.order_id) &gt;= 5 and (SELECT o2.total_amount 
+                                   FROM orders o2
+								   WHERE o2.customer_id = c.customer_id and o2.order_date = (SELECT max(o1.order_date)
+								                                                           FROM orders o1
+																						   WHERE o1.customer_id = c.customer_id  )) &lt; 2000;
+																						  
+-- Display the names of customers whose first order was placed before January 15, 2025, and whose latest order was placed after March 1, 2025.
+
+SELECT c.customer_name 
+FROM customers c
+JOIN orders o
+on o.customer_id = c.customer_id
+GROUP by c.customer_id,c.customer_name
+HAVING (min(o.order_date) &lt; '2025-01-15') and (max(o.order_date) &gt; '2025-03-01'); 	
+
+
+
+-- Display the names of customers who have purchased every Electronics product.
+
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items od on od.order_id = o.order_id
+JOIN products p on p.product_id = od.product_id
+JOIN categories cat on cat.category_id = p.category_id
+WHERE cat.category_name = 'Electronics'
+GROUP by c.customer_id,c.customer_name
+HAVING count(DISTINCT p.product_id) = (SELECT count(p.product_id)
+                                       FROM products p
+									   JOIN categories c1
+									   on c1.category_id = p.category_id
+									   WHERE c1.category_name = 'Electronics');
+									   
+-- Display the names of customers whose total spending is greater than ₹50,000 and who have purchased at least 10 different products.
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+GROUP by c.customer_id,c.customer_name
+HAVING sum(o.total_amount) &gt; 50000 and count(DISTINCT o1.product_id) &gt;= 10;
+
+
+-- Display the names of customers who have placed more than 3 orders, and every order amount is greater than ₹2,000.
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o 
+on o.customer_id = c.customer_id
+where not EXISTS (SELECT 1
+                  FROM orders o
+				  where o.customer_id = c.customer_id and o.total_amount &lt; 2000)
+GROUP by c.customer_id,c.customer_name
+HAVING count(o.order_id) &gt; 3;
+
+
+
+-- Display the names of customers who have purchased from every category except Electronics.
+
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+JOIN products p on p.product_id = o1.product_id
+JOIN categories cat on cat.category_id = p.category_id
+WHERE cat.category_name &lt;&gt; 'Electronics'
+GROUP by c.customer_id,c.customer_name
+HAVING count(DISTINCT p.category_id) = (SELECT count(c1.category_id)
+										FROM categories c1
 										WHERE c1.category_name &lt;&gt; 'Electronics');
-																			 		   
-</sql><current_tab id="0"/></tab_sql></sqlb_project>
+										
+										
+										
+-- Display the names of customers who have purchased at least one product from every category and whose average purchased quantity per order item is greater than 3.
+
+
+SELECT c.customer_name
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+JOIN products p on p.product_id = o1.product_id
+JOIN categories cat on cat.category_id = p.category_id
+GROUP by c.customer_id,c.customer_name
+HAVING (count(DISTINCT p.category_id)	= (SELECT count(category_id)
+                               FROM categories)) and avg(o1.quantity) &gt; 3;	
+		
+
+--Display the names of customers who:
+
+-- have purchased every category,
+-- have never placed an order below ₹500,
+-- have a total spending greater than ₹100,000, and
+-- have purchased at least 20 different products.
+	
+SELECT c.customer_name	
+FROM customers c
+JOIN orders o on o.customer_id = c.customer_id
+JOIN order_items o1 on o1.order_id = o.order_id
+JOIN products p on p.product_id = o1.product_id
+JOIN categories cat on cat.category_id = p.category_id
+WHERE not EXISTS (SELECT 1 
+                  FROM orders o2
+				  WHERE o2.customer_id = c.customer_id and o2.total_amount &lt; 500)
+GROUP by c.customer_id,c.customer_name
+HAVING (count(DISTINCT p.category_id) = (SELECT count(*)
+                                        FROM categories)) and ((SELECT sum(o3.total_amount)
+									                           FROM orders o3 
+															   where o3.customer_id = c.customer_id) &gt; 100000) and count( distinct p.product_id) &gt;= 20;</sql><current_tab id="0"/></tab_sql></sqlb_project>

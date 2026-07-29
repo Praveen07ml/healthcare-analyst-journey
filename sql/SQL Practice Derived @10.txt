@@ -1,0 +1,219 @@
+Business Requirement
+
+Display the names of customers whose total spending is greater than ₹50,000.
+
+Tables
+
+Customers
+Orders
+
+Answer in this format only:
+
+
+
+Business Requirement-- we have to display customers their total spending greater than 50k
+Manual Verification -- we need to solve total spending table and filter the result with 50 k
+Business Proof - group by + having +sum total amount inside derived table
+Why do we need a Derived Table here? -- because we need not have total spending column in actual tables so we have to create one use it for main query
+SQL
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,sum(o.total_amount) as total_spending
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_name) t
+WHERE t.total_spending > 50000;
+	  
+
+
+Display the names of customers who have placed more than 5 orders.
+
+Tables:
+
+Customers
+Orders
+
+
+
+Business Requirement  -- we need customers placed more than 5 orders
+Manual Verification - here the customers must placed more than 5 orders
+Business Proof -- so we create a temporary table and find out customer count of orders and filter the result in main query
+SQL
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,count(o.order_id) as total_count
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_id,c.customer_name) t
+WHERE t.total_count > 5;
+
+
+
+Display the names of customers whose average order amount is greater than ₹8,000.
+
+Tables:
+
+Customers
+Orders
+
+
+Business Requirement -- we need to display customers their avg order amount more than 8k
+Manual Verification - we check each customer avg order value if its more than 8k its in our return list
+Business Proof - we have to calculate each customer order value and return customers whos average order value more than 8 k
+SQL
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,avg(o.total_amount) as avg_order
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_name) t
+WHERE t.avg_order > 8000;
+
+
+
+
+Display the names of customers who have purchased at least 10 different products.
+
+Tables:
+
+Customers
+Orders
+Order_Items
+
+Business Requirement - we need to display customers they must buy 10 different products
+Manual Verification - in customer product list if the customer purchase 10 different products he was in our return list
+Business Proof - we need to calaculate each customer distinct count of product purchases so in order to return customer that product count equal to 10
+SQL
+
+-- Display the names of customers who have purchased at least 10 different products.
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,count(DISTINCT o1.product_id) as product_count
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  JOIN order_items o1 on o1.order_id = o.order_id
+	  GROUP by c.customer_id,c.customer_name) t
+WHERE t.product_count >= 10 ;
+
+
+
+Display the names of customers whose total spending is greater than ₹100,000 and who have placed at least 10 orders.
+
+Tables:
+
+Customers
+Orders
+
+
+Business Requirement  --- we need to display customers total spend greater than 100000 and their total orders atleast more than 10 orders
+Manual Verification -- we check customers total spend > 1000000 and total orders >= 10 then return those cusotmers who satisfy both conditions
+Business Proof - we need to calculate total spend and total orders inorder to return customers we have to filter those to satisfy conditions
+SQL
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,sum(o.total_amount) as total_spent,count(o.order_id) as order_count
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_id,c.customer_name)t
+WHERE t.total_spent > 100000 and t.order_count >= 10;
+
+
+
+
+Display the names of customers who purchased products from every category.
+
+Tables:
+
+Customers
+Orders
+Order_Items
+Products
+Categories
+
+
+
+Business Requirement -- we need to find customers ppurcahse from every category
+Manual Verification  -- so  we need to look into each customer purchase categories satisfy all categories
+Business Proof -- we need to calculate count of disctinct categories that customer brought and return customers who brought equally the whole count categories 
+SQL
+
+
+-- Display the names of customers who purchased products from every category.
+
+
+SELECT t.customer_name
+FROM (SELECT c.customer_name,count(distinct p.category_id) as customer_cat_count
+      FROM customers c
+	  JOIN orders o
+	  on c.customer_id = o.customer_id
+	  JOIN order_items o1 on o1.order_id = o.order_id
+	  JOIN products p on p.product_id = o1.product_id
+	  GROUP by c.customer_id,c.customer_name) t
+where t.customer_cat_count = (SELECT count(*)
+                              FROM categories);
+
+
+
+
+Display the names of customers whose average order amount is greater than ₹7,500 and who have never placed an order below ₹500.
+
+Tables:
+
+Customers
+Orders
+
+Business Requirement -- we need to display customers their average order amount > 7.5 k and never placed order bellow 500
+Manual Verification  - we need to check the customer avg order value > 7.5 k and never place order < 500
+Business Proof - we have to calculate avg order value and never palced order below and return customers to filter out them based on conditions
+SQL
+
+
+SELECT customer_name
+FROM (SELECT c.customer_name,o.total_amount,avg(o.total_amount) as avg_amount
+      FROM customers c
+	  JOIN orders o
+	  on o.customer_id = c.customer_id
+	  GROUP by c.customer_id,c.customer_name,o.total_amount) t
+WHERE avg_amount > 7500 AND t.total_amount < 500;
+
+
+
+Display the names of customers whose latest order amount is greater than their own average order amount.
+
+Tables:
+
+Customers
+Orders
+
+
+
+Business Requirement  -- we have to disply customers their latest order amount more than their own avg order amount
+Manual Verification  -- we need to check that customer latest order amount and that must moe than their avg amount
+Business Proof -- calculate that latest order amount and compare with their each customer avg amount must more than that latest order to return customers
+SQL
+
+SELECT t.customer_name
+FROM (SELECT c.customer_id,c.customer_name,o.total_amount as latest_total_amount 
+      from customers c
+	  JOIN orders o 
+	  on o.customer_id = c.customer_id
+	  where o.order_date = (SELECT max(o1.order_date)
+	                        FROM orders o1
+							WHERE o1.customer_id = c.customer_id))t
+where t.latest_total_amount > (SELECT avg(o2.total_amount)
+                               FROM orders o2
+							   WHERE o2.customer_id = t.customer_id);
+
+
+
+
+
+
+
